@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="dao.UserInfoMapper" >
+<cache type="org.mybatis.caches.ehcache.EhcacheCache">
+		<property name="timeToIdleSeconds" value="3600" />
+		<property name="timeToLiveSeconds" value="3600" />
+		<!-- 同ehcache参数maxElementsInMemory -->
+		<property name="maxEntriesLocalHeap" value="1000" />
+		<!-- 同ehcache参数maxElementsOnDisk -->
+		<property name="maxEntriesLocalDisk" value="10000000" />
+		<property name="memoryStoreEvictionPolicy" value="LRU" />
+	</cache>
+
+
+  <resultMap id="BaseResultMap" type="pojo.UserInfo" >
+    <id column="USERID" property="userid" jdbcType="DECIMAL" />
+    <result column="USERNAME" property="username" jdbcType="VARCHAR" />
+    <result column="USERPWD" property="userpwd" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    USERID, USERNAME, USERPWD
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int" >
+    select 
+    <include refid="Base_Column_List" />
+    from USERINFO
+    where USERID = #{userid,jdbcType=DECIMAL}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="int" >
+    delete from USERINFO
+    where USERID = #{userid,jdbcType=DECIMAL}
+  </delete>
+  <insert id="insert" parameterType="pojo.UserInfo" >
+    insert into USERINFO (USERNAME, USERPWD
+      )
+    values (seq_userinfo,#{username,jdbcType=VARCHAR}, #{userpwd,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="pojo.UserInfo" >
+    insert into USERINFO
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="userid != null" >
+        USERID,
+      </if>
+      <if test="username != null" >
+        USERNAME,
+      </if>
+      <if test="userpwd != null" >
+        USERPWD,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="userid != null" >
+        #{userid,jdbcType=DECIMAL},
+      </if>
+      <if test="username != null" >
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="userpwd != null" >
+        #{userpwd,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="pojo.UserInfo" >
+    update USERINFO
+    <set >
+      <if test="username != null" >
+        USERNAME = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="userpwd != null" >
+        USERPWD = #{userpwd,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where USERID = #{userid,jdbcType=DECIMAL}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="pojo.UserInfo" >
+    update USERINFO
+    set USERNAME = #{username,jdbcType=VARCHAR},
+      USERPWD = #{userpwd,jdbcType=VARCHAR}
+    where USERID = #{userid,jdbcType=DECIMAL}
+  </update>
+ 
+  <!-- 自定义的查找 用过程 -->
+  	<!-- 细节 数据类型必须大写 VARCHAR,number转换成INTEGER -->
+	<insert id="call_proc_addUser" statementType="CALLABLE" parameterType="java.util.Map">
+		{call proc_addUser(#{var_username,mode=IN,jdbcType=VARCHAR},#{var_userpwd,mode=IN,jdbcType=VARCHAR},#{var_count,mode=OUT,jdbcType=INTEGER})}
+	</insert>
+	
+	<select id="selectUserList" resultType="pojo.UserInfo" >
+	select  
+	  <include refid="Base_Column_List" />
+	from userinfo
+	</select>
+	
+	<!-- 自定义数据类型 -->
+	<resultMap type="pojo.UserInfo" id="userinfoMap">
+		<id column="userid" property="userid" />
+		<result column="username" property="username" />
+		<result column="userpwd" property="userpwd" />
+	</resultMap>
+	
+	<select id="call_proc_getUser" statementType="CALLABLE"
+		parameterType="java.util.Map">
+		{call proc_getUserInfos(#{result,jdbcType=CURSOR,mode=OUT,javaType=ResultSet,
+		resultMap=userinfoMap})}
+	</select>
+  
+  
+</mapper>
